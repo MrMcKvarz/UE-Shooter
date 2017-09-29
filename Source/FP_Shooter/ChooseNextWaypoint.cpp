@@ -2,19 +2,20 @@
 
 #include "ChooseNextWaypoint.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "PatrollingGuard.h"
 #include "AIController.h"
-
+#include "PatrolRouteComponent.h"
 
 EBTNodeResult::Type UChooseNextWaypoint::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	UBlackboardComponent * BlackBoardComponent = OwnerComp.GetBlackboardComponent();
+	if (!BlackBoardComponent) return EBTNodeResult::Failed;
 	int32 Index = BlackBoardComponent->GetValueAsInt(IndexKey.SelectedKeyName);
 	auto AIOwner = OwnerComp.GetAIOwner();
-	APatrollingGuard * Patrol = Cast<APatrollingGuard>(AIOwner->GetControlledPawn());
-	int32 PatrolPointsNumber = Patrol->PatrolPoints.Num();
+	UPatrolRouteComponent * PatrolComponent = Cast<UPatrolRouteComponent>(AIOwner->GetControlledPawn()->GetComponentByClass(UPatrolRouteComponent::StaticClass()));
+	if (!PatrolComponent) return EBTNodeResult::Failed;
+	int32 PatrolPointsNumber = PatrolComponent->GetPatrolPoints().Num();
 	if (PatrolPointsNumber == 0) return EBTNodeResult::Failed;
-	BlackBoardComponent->SetValueAsObject(Waypoint.SelectedKeyName, Patrol->PatrolPoints[Index++ % PatrolPointsNumber]);
+	BlackBoardComponent->SetValueAsObject(Waypoint.SelectedKeyName, PatrolComponent->GetPatrolPoints()[Index++ % PatrolPointsNumber]);
 	
 	BlackBoardComponent->SetValueAsInt(IndexKey.SelectedKeyName, Index % PatrolPointsNumber);
 	//UE_LOG(LogTemp, Warning, TEXT("Execute task of UChooseNextWaypoint %i"), Index);

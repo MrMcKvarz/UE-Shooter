@@ -15,7 +15,7 @@ class FP_SHOOTER_API UChooseNextWaypoint : public UBTTaskNode
 	GENERATED_BODY()
 	
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
+	int32 Index;
 protected:
 	UPROPERTY(EditAnywhere, Category = "Blackboard")
 	struct FBlackboardKeySelector IndexKey;
