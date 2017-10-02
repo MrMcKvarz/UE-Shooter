@@ -1,7 +1,7 @@
 // Copyright 1998-2017 Epic Games, Inc. All Rights Reserved.
 
-#include "FP_ShooterCharacter.h"
-#include "FP_ShooterProjectile.h"
+#include "FirstPersonCharacter.h"
+#include "Weapon/BallProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -14,9 +14,9 @@
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 //////////////////////////////////////////////////////////////////////////
-// AFP_ShooterCharacter
+// AAFirstPersonCharacter
 
-AFP_ShooterCharacter::AFP_ShooterCharacter()
+AAFirstPersonCharacter::AAFirstPersonCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
@@ -83,7 +83,7 @@ AFP_ShooterCharacter::AFP_ShooterCharacter()
 	//bUsingMotionControllers = true;
 }
 
-void AFP_ShooterCharacter::BeginPlay()
+void AAFirstPersonCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
@@ -107,7 +107,7 @@ void AFP_ShooterCharacter::BeginPlay()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AFP_ShooterCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+void AAFirstPersonCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
@@ -115,27 +115,27 @@ void AFP_ShooterCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
-	//InputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AFP_ShooterCharacter::TouchStarted);
+	//InputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AAFirstPersonCharacter::TouchStarted);
 	if (EnableTouchscreenMovement(PlayerInputComponent) == false)
 	{
-		PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AFP_ShooterCharacter::OnFire);
+		PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AAFirstPersonCharacter::OnFire);
 	}
 
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AFP_ShooterCharacter::OnResetVR);
+	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AAFirstPersonCharacter::OnResetVR);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &AFP_ShooterCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AFP_ShooterCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &AAFirstPersonCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AAFirstPersonCharacter::MoveRight);
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("TurnRate", this, &AFP_ShooterCharacter::TurnAtRate);
+	PlayerInputComponent->BindAxis("TurnRate", this, &AAFirstPersonCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &AFP_ShooterCharacter::LookUpAtRate);
+	PlayerInputComponent->BindAxis("LookUpRate", this, &AAFirstPersonCharacter::LookUpAtRate);
 }
 
-void AFP_ShooterCharacter::OnFire()
+void AAFirstPersonCharacter::OnFire()
 {
 	// try and fire a projectile
 	if (ProjectileClass != NULL)
@@ -147,7 +147,7 @@ void AFP_ShooterCharacter::OnFire()
 			{
 				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
 				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-				World->SpawnActor<AFP_ShooterProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+				World->SpawnActor<ABallProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
 			}
 			else
 			{
@@ -160,7 +160,7 @@ void AFP_ShooterCharacter::OnFire()
 				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 				// spawn the projectile at the muzzle
-				World->SpawnActor<AFP_ShooterProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+				World->SpawnActor<ABallProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 			}
 		}
 	}
@@ -183,12 +183,12 @@ void AFP_ShooterCharacter::OnFire()
 	}
 }
 
-void AFP_ShooterCharacter::OnResetVR()
+void AAFirstPersonCharacter::OnResetVR()
 {
 	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
-void AFP_ShooterCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
+void AAFirstPersonCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
 	if (TouchItem.bIsPressed == true)
 	{
@@ -200,7 +200,7 @@ void AFP_ShooterCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const
 	TouchItem.bMoved = false;
 }
 
-void AFP_ShooterCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
+void AAFirstPersonCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
 {
 	if (TouchItem.bIsPressed == false)
 	{
@@ -216,7 +216,7 @@ void AFP_ShooterCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const F
 //Commenting this section out to be consistent with FPS BP template.
 //This allows the user to turn without using the right virtual joystick
 
-//void AFP_ShooterCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location)
+//void AAFirstPersonCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location)
 //{
 //	if ((TouchItem.bIsPressed == true) && (TouchItem.FingerIndex == FingerIndex))
 //	{
@@ -251,7 +251,7 @@ void AFP_ShooterCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const F
 //	}
 //}
 
-void AFP_ShooterCharacter::MoveForward(float Value)
+void AAFirstPersonCharacter::MoveForward(float Value)
 {
 	if (Value != 0.0f)
 	{
@@ -260,7 +260,7 @@ void AFP_ShooterCharacter::MoveForward(float Value)
 	}
 }
 
-void AFP_ShooterCharacter::MoveRight(float Value)
+void AAFirstPersonCharacter::MoveRight(float Value)
 {
 	if (Value != 0.0f)
 	{
@@ -269,29 +269,29 @@ void AFP_ShooterCharacter::MoveRight(float Value)
 	}
 }
 
-void AFP_ShooterCharacter::TurnAtRate(float Rate)
+void AAFirstPersonCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AFP_ShooterCharacter::LookUpAtRate(float Rate)
+void AAFirstPersonCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-bool AFP_ShooterCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
+bool AAFirstPersonCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
 {
 	bool bResult = false;
 	if (FPlatformMisc::GetUseVirtualJoysticks() || GetDefault<UInputSettings>()->bUseMouseForTouch)
 	{
 		bResult = true;
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AFP_ShooterCharacter::BeginTouch);
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Released, this, &AFP_ShooterCharacter::EndTouch);
+		PlayerInputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AAFirstPersonCharacter::BeginTouch);
+		PlayerInputComponent->BindTouch(EInputEvent::IE_Released, this, &AAFirstPersonCharacter::EndTouch);
 
 		//Commenting this out to be more consistent with FPS BP template.
-		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AFP_ShooterCharacter::TouchUpdate);
+		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AAFirstPersonCharacter::TouchUpdate);
 	}
 	return bResult;
 }
