@@ -12,7 +12,7 @@ EBTNodeResult::Type UChooseNextWaypoint::ExecuteTask(UBehaviorTreeComponent& Own
 	int32 Index = BlackBoardComponent->GetValueAsInt(IndexKey.SelectedKeyName);
 	auto AIOwner = OwnerComp.GetAIOwner();
 	UPatrolRouteComponent * PatrolComponent = Cast<UPatrolRouteComponent>(AIOwner->GetControlledPawn()->GetComponentByClass(UPatrolRouteComponent::StaticClass()));
-	if (!PatrolComponent) return EBTNodeResult::Failed;
+	if (!ensure(PatrolComponent)) return EBTNodeResult::Failed;
 	int32 PatrolPointsNumber = PatrolComponent->GetPatrolPoints().Num();
 	if (PatrolPointsNumber == 0) return EBTNodeResult::Failed;
 	BlackBoardComponent->SetValueAsObject(Waypoint.SelectedKeyName, PatrolComponent->GetPatrolPoints()[Index++ % PatrolPointsNumber]);
